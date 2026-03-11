@@ -101,6 +101,51 @@
       font-style: normal;
     }
 
+
+    /* OTHER OPTION */
+    .other-item { border-bottom: 1px solid var(--line); }
+
+    .other-row {
+      width: 100%;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 14px 0;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-family: 'DM Sans', sans-serif;
+      text-align: left;
+    }
+
+    .other-row:hover .opt-name { opacity: 0.6; }
+    .other-row.selected .opt-radio { border-color: var(--ink); background: var(--ink); }
+    .other-row.selected .opt-radio-dot { opacity: 1; }
+
+    .other-input-wrap {
+      display: none;
+      padding: 0 0 14px 58px;
+    }
+
+    .other-input-wrap.show { display: block; }
+
+    .other-input {
+      width: 100%;
+      max-width: 320px;
+      border: none;
+      border-bottom: 1.5px solid var(--line);
+      background: transparent;
+      padding: 6px 0;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.92rem;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .other-input::placeholder { color: #bbb; }
+    .other-input:focus { border-color: var(--ink); }
+
     /* NAME INPUT */
     .name-field { margin-bottom: 32px; }
     .name-field label { display: block; margin-bottom: 8px; }
@@ -375,6 +420,20 @@
     list.appendChild(li);
   });
 
+  // Add "Other" option
+  const otherLi = document.createElement('li');
+  otherLi.className = 'other-item';
+  otherLi.innerHTML = `
+    <button class="other-row opt-btn" id="otherBtn" data-name="OTHER" data-letter="X" onclick="pickOther()">
+      <span class="opt-letter">X</span>
+      <span class="opt-radio"><span class="opt-radio-dot"></span></span>
+      <span class="opt-name">Other</span>
+    </button>
+    <div class="other-input-wrap" id="otherInputWrap">
+      <input class="other-input" id="otherText" type="text" placeholder="Type your suggested name…" oninput="updateOtherName(this.value)"/>
+    </div>`;
+  list.appendChild(otherLi);
+
   function pick(btn) {
     const name = btn.dataset.name;
     const letter = btn.dataset.letter;
@@ -391,6 +450,38 @@
       selected.push({ name, letter });
     }
     document.getElementById('errorMsg').style.display = 'none';
+    updateCount();
+  }
+
+  function pickOther() {
+    const btn = document.getElementById('otherBtn');
+    const wrap = document.getElementById('otherInputWrap');
+    if (btn.classList.contains('selected')) {
+      btn.classList.remove('selected');
+      selected = selected.filter(s => s.letter !== 'X');
+      wrap.classList.remove('show');
+    } else {
+      if (selected.length >= 3) {
+        document.getElementById('errorMsg').textContent = 'You can only select 3 names. Deselect one first.';
+        document.getElementById('errorMsg').style.display = 'block';
+        return;
+      }
+      btn.classList.add('selected');
+      const otherVal = document.getElementById('otherText').value.trim() || 'Other';
+      selected.push({ name: otherVal, letter: 'X' });
+      wrap.classList.add('show');
+      document.getElementById('otherText').focus();
+    }
+    document.getElementById('errorMsg').style.display = 'none';
+    updateCount();
+  }
+
+  function updateOtherName(val) {
+    const idx = selected.findIndex(s => s.letter === 'X');
+    if (idx !== -1) selected[idx].name = val.trim() || 'Other';
+  }
+
+  function updateCount() {
     const count = selected.length;
     document.getElementById('submitBtn').disabled = count !== 3;
     if (count === 0) {
