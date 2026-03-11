@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Name Vote — Fashion Platform</title>
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400&family=Hind+Siliguri:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -72,6 +72,33 @@
       font-weight: 300;
       line-height: 1.65;
       margin-bottom: 40px;
+    }
+
+
+    /* BANGLA QUOTE */
+    .bangla-quote {
+      margin-bottom: 36px;
+      padding: 20px 24px;
+      border-left: 2px solid var(--ink);
+      background: #f4f3ef;
+    }
+
+    .bangla-quote p {
+      font-family: 'Hind Siliguri', sans-serif;
+      font-size: 0.9rem;
+      line-height: 1.85;
+      color: var(--ink);
+      font-weight: 400;
+    }
+
+    .bangla-quote cite {
+      display: block;
+      margin-top: 10px;
+      font-size: 0.7rem;
+      color: var(--soft);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-style: normal;
     }
 
     /* NAME INPUT */
@@ -265,7 +292,17 @@
 <main>
   <p class="q-label">Q&nbsp;01</p>
   <h1>Which name would you choose for a dedicated fashion &amp; clothing multi-brand platform?</h1>
-  <p class="sub">Multiple brands, one platform. Pick the name that feels right for that identity.</p>
+  <p class="sub">Multiple brands, one platform. Select exactly 3 names you think fit best.</p>
+
+  <div class="bangla-quote">
+    <p>নাম সিলেকশনের সময় মাথায় রাখবেন — শুধু শুনতে ভালো লাগে এমন নয়, স্টার্টআপের কনসেপ্টের সাথে যায় এমন এবং সাধারণ মানুষ সহজে মনে রাখবে এবং উচ্চারণ সহজ এমন নাম চুজ করবেন।</p>
+    <cite>— একটু ভেবে বেছে নিন</cite>
+  </div>
+      </div>
+      </div>
+      </div>
+    </div>
+  </div>
 
   <div class="name-field">
     <label class="q-label" for="voterName">Your Name</label>
@@ -276,12 +313,12 @@
 
   <div class="submit-row">
     <button class="submit-btn" id="submitBtn" disabled onclick="submitVote()">Submit Vote</button>
-    <span class="hint" id="hint">Select an option to continue</span>
+    <span class="hint" id="hint">Select up to 3 names to continue</span>
   </div>
   <p class="error-msg" id="errorMsg"></p>
 
   <div class="success-box" id="successBox">
-    <p>Thank you, <strong id="voterDisplay"></strong> — your vote for <strong id="chosenName"></strong> has been recorded.</p>
+    <p>Thank you, <strong id="voterDisplay"></strong> — your votes for <strong id="chosenName"></strong> have been recorded.</p>
     <small>Response saved to Google Sheets.</small>
   </div>
 
@@ -299,7 +336,7 @@
   function doPost(e) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var d = JSON.parse(e.postData.contents);
-    sheet.appendRow([d.timestamp, d.voterName, d.vote, d.letter, d.userAgent]);
+    sheet.appendRow([d.timestamp, d.voterName, d.votes, d.letters, d.userAgent]);
     return ContentService
       .createTextOutput(JSON.stringify({status:"ok"}))
       .setMimeType(ContentService.MimeType.JSON);
@@ -320,7 +357,7 @@
   ];
   const ALPHA = 'ABCDEFGHIJKLMNOPQRST';
 
-  let selected = null;
+  let selected = [];
 
   const list = document.getElementById('optionsList');
   NAMES.forEach((name, i) => {
@@ -339,16 +376,34 @@
   });
 
   function pick(btn) {
-    document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    selected = { name: btn.dataset.name, letter: btn.dataset.letter };
-    document.getElementById('submitBtn').disabled = false;
-    document.getElementById('hint').textContent = `"${selected.name}" selected`;
+    const name = btn.dataset.name;
+    const letter = btn.dataset.letter;
+    if (btn.classList.contains('selected')) {
+      btn.classList.remove('selected');
+      selected = selected.filter(s => s.name !== name);
+    } else {
+      if (selected.length >= 3) {
+        document.getElementById('errorMsg').textContent = 'You can only select 3 names. Deselect one first.';
+        document.getElementById('errorMsg').style.display = 'block';
+        return;
+      }
+      btn.classList.add('selected');
+      selected.push({ name, letter });
+    }
     document.getElementById('errorMsg').style.display = 'none';
+    const count = selected.length;
+    document.getElementById('submitBtn').disabled = count !== 3;
+    if (count === 0) {
+      document.getElementById('hint').textContent = 'Please select exactly 3 names';
+    } else if (count < 3) {
+      document.getElementById('hint').textContent = count + ' of 3 selected — pick ' + (3 - count) + ' more';
+    } else {
+      document.getElementById('hint').textContent = '✓ 3 of 3 selected — ready to submit!';
+    }
   }
 
   async function submitVote() {
-    if (!selected) return;
+    if (!selected.length) return;
     const nameVal = document.getElementById('voterName').value.trim();
     if (!nameVal) {
       const inp = document.getElementById('voterName');
@@ -364,8 +419,8 @@
     const payload = {
       timestamp: new Date().toISOString(),
       voterName: document.getElementById('voterName').value.trim() || 'Anonymous',
-      vote: selected.name,
-      letter: selected.letter,
+      votes: selected.map(s => s.name).join(', '),
+      letters: selected.map(s => s.letter).join(', '),
       userAgent: navigator.userAgent
     };
 
@@ -391,7 +446,7 @@
   }
 
   function showSuccess() {
-    document.getElementById('chosenName').textContent = selected.name;
+    document.getElementById('chosenName').textContent = selected.map(s => s.name).join(', ');
     document.getElementById('voterDisplay').textContent = document.getElementById('voterName').value.trim() || 'Anonymous';
     document.getElementById('voterName').disabled = true;
     document.getElementById('successBox').classList.add('show');
