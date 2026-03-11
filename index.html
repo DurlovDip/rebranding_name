@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Name Vote — Fashion Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f9f8f6;
+      --ink: #1a1a18;
+      --soft: #888880;
+      --line: #e0ddd6;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      font-size: 15px;
+    }
+
+    header {
+      padding: 28px 40px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+    }
+
+    .site-name {
+      font-family: 'EB Garamond', serif;
+      font-size: 1.1rem;
+      letter-spacing: 0.04em;
+    }
+
+    .site-sub {
+      font-size: 0.7rem;
+      color: var(--soft);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 52px 40px 80px;
+    }
+
+    .q-label {
+      font-size: 0.67rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--soft);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-family: 'EB Garamond', serif;
+      font-size: clamp(1.4rem, 2.8vw, 1.85rem);
+      font-weight: 400;
+      line-height: 1.45;
+      margin-bottom: 8px;
+    }
+
+    .sub {
+      font-size: 0.83rem;
+      color: var(--soft);
+      font-weight: 300;
+      line-height: 1.65;
+      margin-bottom: 40px;
+    }
+
+    /* NAME INPUT */
+    .name-field { margin-bottom: 32px; }
+    .name-field label { display: block; margin-bottom: 8px; }
+    .name-field input {
+      width: 100%; max-width: 320px;
+      border: none; border-bottom: 1.5px solid var(--line);
+      background: transparent; padding: 8px 0;
+      font-family: "DM Sans", sans-serif; font-size: 0.95rem;
+      color: var(--ink); outline: none; transition: border-color 0.15s;
+    }
+    .name-field input::placeholder { color: #bbb; }
+    .name-field input:focus { border-color: var(--ink); }
+
+    /* LIST */
+    .options {
+      list-style: none;
+      border-top: 1px solid var(--line);
+    }
+
+    .options li {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .opt-btn {
+      width: 100%;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 14px 0;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-family: 'DM Sans', sans-serif;
+      text-align: left;
+    }
+
+    .opt-letter {
+      width: 22px;
+      font-size: 0.68rem;
+      color: var(--soft);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      text-align: right;
+    }
+
+    .opt-radio {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      border: 1.5px solid #ccc;
+      flex-shrink: 0;
+      transition: border-color 0.12s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .opt-btn.selected .opt-radio {
+      border-color: var(--ink);
+      background: var(--ink);
+    }
+
+    .opt-radio-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--bg);
+      opacity: 0;
+      transition: opacity 0.12s;
+    }
+
+    .opt-btn.selected .opt-radio-dot { opacity: 1; }
+
+    .opt-name {
+      font-size: 0.97rem;
+      color: var(--ink);
+      font-weight: 400;
+    }
+
+    .opt-btn:hover .opt-name { opacity: 0.6; }
+    .opt-btn.selected .opt-name { opacity: 1; font-weight: 400; }
+
+    /* SUBMIT */
+    .submit-row {
+      margin-top: 36px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .submit-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-weight: 400;
+      background: var(--ink);
+      color: var(--bg);
+      border: none;
+      padding: 12px 28px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .submit-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+    .submit-btn:not(:disabled):hover { opacity: 0.7; }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--soft);
+      font-weight: 300;
+    }
+
+    .error-msg {
+      display: none;
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: #b94a48;
+    }
+
+    /* SUCCESS */
+    .success-box {
+      display: none;
+      margin-top: 36px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+    }
+
+    .success-box.show { display: block; }
+
+    .success-box p {
+      font-family: 'EB Garamond', serif;
+      font-size: 1.25rem;
+    }
+
+    .success-box small {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: var(--soft);
+      font-weight: 300;
+    }
+
+    /* SETUP NOTE */
+    .setup-note {
+      margin-top: 52px;
+      padding: 18px 20px;
+      border: 1px solid #ead860;
+      background: #fffdf0;
+      font-size: 0.76rem;
+      color: #7a6a10;
+      line-height: 1.75;
+    }
+
+    .setup-note strong { font-weight: 500; }
+    .setup-note code {
+      background: #f5e870;
+      padding: 1px 4px;
+      font-family: monospace;
+      font-size: 0.73rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 18px 40px;
+      font-size: 0.7rem;
+      color: var(--soft);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    @media (max-width: 520px) {
+      header, footer { padding-left: 20px; padding-right: 20px; }
+      main { padding-left: 20px; padding-right: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="site-name">Fashion Platform</span>
+  <span class="site-sub">Name Survey</span>
+</header>
+
+<main>
+  <p class="q-label">Q&nbsp;01</p>
+  <h1>Which name would you choose for a dedicated fashion &amp; clothing multi-brand platform?</h1>
+  <p class="sub">Multiple brands, one platform. Pick the name that feels right for that identity.</p>
+
+  <div class="name-field">
+    <label class="q-label" for="voterName">Your Name</label>
+    <input type="text" id="voterName" placeholder="Enter your name" autocomplete="off"/>
+  </div>
+
+  <ul class="options" id="optionsList"></ul>
+
+  <div class="submit-row">
+    <button class="submit-btn" id="submitBtn" disabled onclick="submitVote()">Submit Vote</button>
+    <span class="hint" id="hint">Select an option to continue</span>
+  </div>
+  <p class="error-msg" id="errorMsg"></p>
+
+  <div class="success-box" id="successBox">
+    <p>Thank you, <strong id="voterDisplay"></strong> — your vote for <strong id="chosenName"></strong> has been recorded.</p>
+    <small>Response saved to Google Sheets.</small>
+  </div>
+
+
+</main>
+
+<footer>
+  <span>Fashion Platform — Brand Naming Survey 2025</span>
+  <span>Powered by Google Sheets</span>
+</footer>
+
+<!--
+  APPS SCRIPT — Extensions > Apps Script > paste this:
+
+  function doPost(e) {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var d = JSON.parse(e.postData.contents);
+    sheet.appendRow([d.timestamp, d.voterName, d.vote, d.letter, d.userAgent]);
+    return ContentService
+      .createTextOutput(JSON.stringify({status:"ok"}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  function doGet() { return ContentService.createTextOutput("ok"); }
+-->
+
+<script>
+  // ── Paste your Apps Script Web App URL here ──
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxItzo7W2qLsvTHJBHgnCXogjMGyv244a4fv8Onz2lP6900HBxMDpBUmiyvUgxwBgS7uw/exec';
+  // ─────────────────────────────────────────────
+
+  const NAMES = [
+    'Zydoro','Pinocchio','Clothym','Aarni','Bastro','Poshaki',
+    'Petika','Dhong','Dhaaga','Shuton','Zebra','Zebbu',
+    'BigCart','MyCart','Crowddle','AjkeiNibo','Unimall',
+    'Klothnibi','Boson','Bunon'
+  ];
+  const ALPHA = 'ABCDEFGHIJKLMNOPQRST';
+
+  let selected = null;
+
+  const list = document.getElementById('optionsList');
+  NAMES.forEach((name, i) => {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.dataset.name = name;
+    btn.dataset.letter = ALPHA[i];
+    btn.innerHTML = `
+      <span class="opt-letter">${ALPHA[i]}</span>
+      <span class="opt-radio"><span class="opt-radio-dot"></span></span>
+      <span class="opt-name">${name}</span>`;
+    btn.addEventListener('click', () => pick(btn));
+    li.appendChild(btn);
+    list.appendChild(li);
+  });
+
+  function pick(btn) {
+    document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selected = { name: btn.dataset.name, letter: btn.dataset.letter };
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('hint').textContent = `"${selected.name}" selected`;
+    document.getElementById('errorMsg').style.display = 'none';
+  }
+
+  async function submitVote() {
+    if (!selected) return;
+    const nameVal = document.getElementById('voterName').value.trim();
+    if (!nameVal) {
+      const inp = document.getElementById('voterName');
+      inp.focus(); inp.style.borderColor = '#b94a48';
+      document.getElementById('errorMsg').textContent = 'Please enter your name to continue.';
+      document.getElementById('errorMsg').style.display = 'block';
+      return;
+    }
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    const payload = {
+      timestamp: new Date().toISOString(),
+      voterName: document.getElementById('voterName').value.trim() || 'Anonymous',
+      vote: selected.name,
+      letter: selected.letter,
+      userAgent: navigator.userAgent
+    };
+
+    if (SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') {
+      showSuccess(); return;
+    }
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      showSuccess();
+    } catch (e) {
+      const err = document.getElementById('errorMsg');
+      err.textContent = 'Submission failed. Please try again.';
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Submit Vote';
+    }
+  }
+
+  function showSuccess() {
+    document.getElementById('chosenName').textContent = selected.name;
+    document.getElementById('voterDisplay').textContent = document.getElementById('voterName').value.trim() || 'Anonymous';
+    document.getElementById('voterName').disabled = true;
+    document.getElementById('successBox').classList.add('show');
+    document.getElementById('hint').textContent = 'Vote submitted!';
+    document.getElementById('submitBtn').textContent = 'Submitted ✓';
+    document.querySelectorAll('.opt-btn').forEach(b => b.style.pointerEvents = 'none');
+  }
+</script>
+</body>
+</html>
