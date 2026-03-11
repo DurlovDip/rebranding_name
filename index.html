@@ -336,7 +336,7 @@
   function doPost(e) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var d = JSON.parse(e.postData.contents);
-    sheet.appendRow([d.timestamp, d.voterName, d.votes, d.letters, d.userAgent]);
+    sheet.appendRow([d.timestamp, d.voterName, d.vote1, d.vote2, d.vote3, d.userAgent]);
     return ContentService
       .createTextOutput(JSON.stringify({status:"ok"}))
       .setMimeType(ContentService.MimeType.JSON);
@@ -419,8 +419,9 @@
     const payload = {
       timestamp: new Date().toISOString(),
       voterName: document.getElementById('voterName').value.trim() || 'Anonymous',
-      votes: selected.map(s => s.name).join(', '),
-      letters: selected.map(s => s.letter).join(', '),
+      vote1: selected[0] ? selected[0].name : '',
+      vote2: selected[1] ? selected[1].name : '',
+      vote3: selected[2] ? selected[2].name : '',
       userAgent: navigator.userAgent
     };
 
@@ -446,7 +447,7 @@
   }
 
   function showSuccess() {
-    document.getElementById('chosenName').textContent = selected.map(s => s.name).join(', ');
+    document.getElementById('chosenName').textContent = selected[0].name + ', ' + selected[1].name + ' & ' + selected[2].name;
     document.getElementById('voterDisplay').textContent = document.getElementById('voterName').value.trim() || 'Anonymous';
     document.getElementById('voterName').disabled = true;
     document.getElementById('successBox').classList.add('show');
